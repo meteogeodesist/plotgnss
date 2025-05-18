@@ -1,0 +1,82 @@
+import pygmt
+import os
+os.environ["GMT_DATA_SERVER_LIMIT"] = "unlimited"
+
+
+# Koordinat stasiun GNSS
+station_coords = {
+    "CLUM": (-8.213749550296006, 113.11470359468298),
+    "CMLG": (-7.979608021509437, 112.66268369958567),
+    "CPAS": (-7.6514077546165895, 112.90103733559948),
+    "CPES": (-8.533922153399212, 114.11008988078554),
+    "CSIT": (-7.703318722303659, 114.01288324807241),
+    "CTBN": (-6.872254843975957, 111.9864400939836),
+    "CJEM": (-8.174866632367962, 113.69322780613176),
+    "CMAG": (-7.606414517909928, 111.4514406633051),
+    "CNGA": (-7.604704720348656, 111.90530842173975),
+    "CPAC": (-8.196005802536721, 111.09778838030425),
+    "CPBO": (-7.7149373543674695, 113.21573086700607),
+    "CSBR": (-8.434250527841632, 112.68362209969618),
+    "CSMN": (-7.018319567449935, 113.87518802243792),
+    "CTUL": (-8.06551895519799, 111.90607657340219),
+    "CMJT": (-7.46558024431868, 112.44162037105168),
+    "CNYU": (-8.212200627662506, 114.37537745866841),
+    "CPAI": (-7.718753550210049, 113.53042087802025),
+    "CPCR": (-6.864446419603046, 112.3684427759737),
+    "CSBY": (-7.334336608566689, 112.72437205428012),
+    "CSMP": (-7.195448549923704, 113.25195332648843),
+}
+
+# Region Jawa Timur
+region = [111, 115, -9, -6.5]
+
+# Mulai figure
+fig = pygmt.Figure()
+
+# Peta utama dengan topografi
+fig.grdimage(
+    grid="@earth_relief_15s",
+    region=region,
+    projection="M15c",
+    shading=True,
+    frame=["a", "+t'Peta GNSS Jawa Timur'"],
+    cmap="geo"
+)
+
+# Garis pantai dan batas negara
+fig.coast(
+    shorelines="1/0.5p,black",
+    water="skyblue",
+    land="gray",
+    borders=1,
+    resolution="i"
+)
+
+# Plot titik GNSS dan label
+for station, (lat, lon) in station_coords.items():
+    fig.plot(x=lon, y=lat, style="c0.25c", color="blue", pen="black")
+    fig.text(x=lon + 0.05, y=lat + 0.05, text=station, font="8p,Helvetica-Bold,black")
+
+# Tambahkan inset peta Indonesia
+with fig.inset(position="jTL+w3c+o0.2c", box="+pblack+gwhite"):
+    fig.coast(
+        region="95/141/-11/6",
+        projection="M?",
+        land="gray",
+        water="white",
+        shorelines="0.25p,black",
+        borders=1
+    )
+    # Highlight area Jawa Timur
+    fig.plot(
+        x=[region[0], region[1], region[1], region[0], region[0]],
+        y=[region[2], region[2], region[3], region[3], region[2]],
+        pen="1p,red"
+    )
+
+# Colorbar
+fig.colorbar(frame='af+l"Elevasi (m)"')
+
+# Simpan dan tampilkan
+fig.savefig("peta_jatim_gnss.png")
+fig.show()
